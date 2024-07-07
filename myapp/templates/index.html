@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chatbot</title>
+    <style>
+        body {
+            /* background-image: url(bg_image.png); */
+            background-repeat: no-repeat;
+            background-color: #3578bc;
+            background-position: center;
+            /* Updated background color to a light blue */
+            color: #333;
+            /* Dark text color */
+            font-family: Arial, sans-serif;
+            /* Specify a font */
+            text-align: center;
+            /* Center-align text */
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 100%;
+            height: 100vh;
+            flex-direction: column;
+        }
+
+        .chat-container {
+            background-image: url(/static/bg_image.png);
+
+            background-repeat: no-repeat;
+            background-position: center;
+            background-color: #fff;
+            background-size: cover;
+            height: 80%;
+            background-attachment: fixed;
+            /* White background color */
+            width: 80%;
+            max-width: 1200px;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            /* Add shadow */
+            margin-bottom: 20px;
+            overflow-y: auto;
+            /* Ensure overflow is auto for scroll */
+            max-height: 60vh;
+            /* Limit height of chat box */
+        }
+
+        .user-message,
+        .bot-message {
+            width: 60%;
+            /* Adjust this to change message width */
+            clear: both;
+            /* Ensures each message appears on a new line */
+        }
+
+        .user-message {
+            background-color: #5ee0e7;
+            color: #333;
+            padding: 10px 15px;
+            border-radius: 5px;
+            margin-bottom: 10px;
+            text-align: left;
+            float: left;
+            /* Float user messages to the left */
+        }
+
+        .bot-message {
+            background-color: #9e7ce7;
+            color: #ffffff;
+            padding: 10px 15px;
+            border-radius: 5px;
+            margin-bottom: 10px;
+            text-align: right;
+            float: right;
+            /* Float bot messages to the right */
+        }
+
+        .input-group {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 100%;
+            margin-top: 20px;
+        }
+
+        textarea[type="text"] {
+            width: 80%;
+            padding: 10px;
+            border-radius: 5px;
+            resize: none;
+            /* Disable textarea resizing */
+            font-size: 16px;
+        }
+
+        button[type="submit"] {
+            background-color: #ebf0eb;
+            /* Green button background color */
+            color: #fff;
+            /* White text color for button */
+            border: none;
+            /* Remove button border */
+            cursor: pointer;
+            /* Show pointer cursor on hover */
+            margin-left: 10px;
+            padding: 10px 15px;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+
+        button[type="submit"]:hover {
+            background-color: #315ca8;
+            /* Darker green on hover */
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="chat-container" id="chat-container">
+            <!-- Chat messages will be displayed here -->
+        </div>
+        <form method="post" id="chat-form" class="input-group">
+            {% csrf_token %}
+            <textarea id="user-input" name="input_str" type="text" placeholder="Type your message..."></textarea>
+            {% load static %}
+            <button type="submit"><img src="{% static 'send_button.png' %}" alt="Send"
+                    style="width: 30px; height: 30px;"></button>
+
+        </form>
+        <div>
+            {% if output_str %}
+                <p><strong>Output:</strong> {{ output_str }}</p>
+            {% endif %}
+        </div>
+        
+    </div>
+
+    <script>
+        // var textarea = document.querySelector('textarea[type="text"]');
+        // textarea.addEventListener('input', autoResize, false);
+        const chatContainer = document.getElementById('chat-container');
+        const chatForm = document.getElementById('chat-form');
+        const userInput = document.getElementById('user-input');
+
+        document.getElementById("chat-form").addEventListener("submit", function (event) {
+            event.preventDefault(); // Prevent default form submission
+
+            // Extract form data
+            var formData = new FormData(this);
+
+            // Send form data via AJAX
+            var xhr = new XMLHttpRequest();
+            xhr.open("POST", "{% url 'my_view' %}", true); // Replace 'your_django_view_name' with the actual name of your Django view
+            xhr.setRequestHeader("X-CSRFToken", "{{ csrf_token }}"); // Set CSRF token header
+            xhr.onreadystatechange = function () {
+                if (xhr.readyState === XMLHttpRequest.DONE) {
+                    if (xhr.status === 200) {
+                        // Handle successful response
+                        // Extract data from HTML response
+                        const parser = new DOMParser();
+                        const htmlDoc = parser.parseFromString(xhr.responseText, 'text/html');
+                        const outputElement = htmlDoc.querySelector('div > p > strong');
+
+                        const outputText = outputElement ? outputElement.nextSibling.textContent.trim() : null;
+                        console.log(outputText)
+                        
+                        
+
+                        if (outputText) {
+                            // Display output in chat container
+                            const botResponse = outputText; // Placeholder response
+
+                            const botMessageElement = document.createElement('div');
+                            botMessageElement.classList.add('bot-message');
+                            botMessageElement.innerHTML = '<strong>Output:</strong> ' + outputText;
+                            chatContainer.appendChild(botMessageElement);
+
+                            // Scroll to bottom of chat container
+                            chatContainer.scrollTop = chatContainer.scrollHeight;
+                            
+                        } 
+                        else {
+                            console.error('Output not found in response');
+                        }
+                        
+
+                        // Scroll to bottom of chat container
+
+                    } else {
+                        // Handle error response
+                        console.error('Error:', xhr.status);
+                    }
+                }
+            };
+            xhr.send(formData);
+            const userMessage = userInput.value.trim();
+            if (!userMessage) return;
+
+            // Display user message
+            const userMessageElement = document.createElement('div');
+            userMessageElement.classList.add('user-message');
+            userMessageElement.textContent = userMessage;
+            chatContainer.appendChild(userMessageElement);
+
+
+            // Clear user input
+            userInput.value = '';
+        });
+
+
+        function getBotResponse(userMessage) {
+            // This function should integrate with your backend for a real response.
+            // For demonstration, it echoes the user message.
+            return "Echo: " + userMessage;  // Placeholder response
+        }
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,99 @@
+<!-- myapp/templates/myapp/index.html -->
+<!DOCTYPE html>
+<html>
+<head>
+    
+    <title>Input Processor</title>
+    <style>
+        body {
+            background-color: #383A39; /* Dark grey background color */
+            color: #fff; /* White text color */
+            font-family: Arial, sans-serif; /* Specify a font */
+            text-align: center; /* Center-align text */
+            
+        }
+
+        .container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 100%;
+            height: 90vh;
+            flex-direction: column;
+        }
+        
+        .input-group{
+            width: 100%;
+            padding: 2em;
+            display: flex;
+            justify-content:center;
+            align-items:center;
+        }
+        textarea[type="text"] {
+            width: 80%; /* Set input width to 100% of input group width */
+            padding: 1rem; /* Add padding to input */
+            border-radius: 7px;
+            height: 25px;
+            max-height: 200px;
+            font-size: 18px;
+            
+        }
+        textarea[type="text"]::placeholder {
+            /*text-align: center; /* Center the placeholder text */
+            font-size: 18px;
+        }
+
+        button[type="submit"] {
+            background-color: #4CAF50; /* Green button background color */
+            color: #fff; /* White text color for button */
+            border: none; /* Remove button border */
+            cursor: pointer; /* Show pointer cursor on hover */
+            margin-left: 1em;
+            border-radius: 7px;
+        }
+        button img {
+            width: 90%;
+            height: 90%;
+        }
+
+        button[type="submit"]:hover {
+            background-color: #45a049; /* Darker green on hover */
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        {% load static %}
+        <img src="{% static 'logo.png' %}" alt="logo">
+        <form method="post" class="input-group">
+            {% csrf_token %}
+            <textarea type="text" name="input_str" placeholder="Enter your input ...."></textarea>
+            {% load static %}
+            <button type="submit">
+                <img src="{% static 'sendIcon.png' %}" alt="My image">
+            </button>
+        </form>
+        <div>
+            {% if output_str %}
+                <p><strong>Output:</strong> {{ output_str }}</p>
+            {% endif %}
+        </div>
+    </div>
+</body>
+<script>
+    var textarea = document.querySelector('textarea[type="text"]');
+    textarea.addEventListener('input', autoResize, false);
+    
+    function autoResize() {
+        console.log(this.value);
+        if(this.value.length>134){
+            this.style.height = 'auto';
+            this.style.height = this.scrollHeight + 'px';
+        }
+        else {
+            this.style.height = '25px';
+        }
+        
+    }
+</script>
+</html>
